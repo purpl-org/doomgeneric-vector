@@ -165,7 +165,11 @@ void DG_Init() {
     server_addr.sin_addr.s_addr = INADDR_ANY;
     server_addr.sin_port = htons(SERVER_PORT);
 
-    bind(udp_sock, (struct sockaddr*)&server_addr, sizeof(server_addr));
+	if (bind(udp_sock, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
+    	perror("bind");
+    	close(udp_sock);
+    	return -1;
+	}
 
 	printf("Input server initialized!\n");
 }
