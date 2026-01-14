@@ -237,6 +237,8 @@ int DG_GetKey(int *pressed, unsigned char *key)
     ssize_t len = recvfrom(udp_sock, packet, 2, 0, NULL, NULL);
 
     if (len == 2) {
+		printf("%c\n", packet[1]);
+
         *pressed = packet[0];
         *key = map_key(packet[1]);
 
