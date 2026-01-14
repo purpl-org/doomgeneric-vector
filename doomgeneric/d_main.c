@@ -455,7 +455,12 @@ void D_DoomLoop (void)
         wipegamestate = gamestate;
     }
 
-    doomgeneric_Tick();
+    //doomgeneric_Tick();
+
+    while (1)
+    {
+        doomgeneric_Tick();
+    }
 }
 
 
