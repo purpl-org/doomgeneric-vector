@@ -1,6 +1,6 @@
 # doomgeneric-vector
 
-On Arch:
+On Arch (run this from your home directory):
 
 `wget https://releases.linaro.org/components/toolchain/binaries/latest-7/arm-linux-gnueabi/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabi.tar.xz`</br>
 `tar xf gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabi.tar.xz`</br>
@@ -9,6 +9,14 @@ On Arch:
 Then to compile:
 
 `make -f Makefile.vector` (you may need to clean if it doesn't want to compile)
+
+Alternatively, and maybe more correctly, you can use the compiler for vector:
+
+`wget https://github.com/os-vector/wire-os-externals/releases/download/5.3.0-r07/vicos-sdk_5.3.0-r07_arm64-linux.tar.gz`</br>
+`tar xf vicos-sdk_5.3.0-r07_arm64-linux.tar.gz`</br>
+`export PATH=~/vicos-sdk_5.3.0-r07_arm64-linux.tar.gz/bin:$PATH`</br>
+
+For the vector toolchain, you may need to change the makefile as it is for the one I used above, but both should work.
 
 # doomgeneric
 The purpose of doomgeneric is to make porting Doom easier.
