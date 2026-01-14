@@ -2,9 +2,9 @@
 
 On Arch:
 
-`wget https://releases.linaro.org/components/toolchain/binaries/latest-7/arm-linux-gnueabi/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabi.tar.xz`
-`tar xf gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabi.tar.xz`
-`export PATH=~/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabi/bin:$PATH`
+`wget https://releases.linaro.org/components/toolchain/binaries/latest-7/arm-linux-gnueabi/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabi.tar.xz`</br>
+`tar xf gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabi.tar.xz`</br>
+`export PATH=~/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabi/bin:$PATH`</br>
 
 Then to compile:
 
