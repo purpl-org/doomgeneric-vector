@@ -120,6 +120,8 @@ int main(int argc, char *argv[]) {
             if (e.type == SDL_KEYDOWN || e.type == SDL_KEYUP) {
                 unsigned char key = sdl_to_doom(e.key.keysym.sym);
                 if (key) {
+		    printf("%c\n", key);
+
                     unsigned char packet[2] = {
                         e.type == SDL_KEYDOWN ? 1 : 0,
                         key
