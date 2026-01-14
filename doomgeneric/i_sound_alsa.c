@@ -1,4 +1,4 @@
-#include <alsa/asoundlib.h>
+#include <asoundlib.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

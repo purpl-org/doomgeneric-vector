@@ -1,1 +1,1 @@
-#include <alsa/sound/uapi/sscape_ioctl.h>
+#include <sound/uapi/sscape_ioctl.h>

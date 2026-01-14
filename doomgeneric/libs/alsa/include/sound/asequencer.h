@@ -1,1 +1,1 @@
-#include <alsa/sound/uapi/asequencer.h>
+#include <sound/uapi/asequencer.h>

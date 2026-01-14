@@ -1,1 +1,1 @@
-#include <alsa/sound/uapi/asoc.h>
+#include <sound/uapi/asoc.h>

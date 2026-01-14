@@ -1,5 +1,5 @@
-#include <alsa/sound/type_compat.h>
-#include <alsa/sound/uapi/hdspm.h>
+#include <sound/type_compat.h>
+#include <sound/uapi/hdspm.h>
 #ifndef __hdspm_type_defined
 #define __hdspm_type_defined
 typedef struct hdspm_peak_rms hdspm_peak_rms_t;

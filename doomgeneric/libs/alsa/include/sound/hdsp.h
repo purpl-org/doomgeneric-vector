@@ -1,5 +1,5 @@
-#include <alsa/sound/type_compat.h>
-#include <alsa/sound/uapi/hdsp.h>
+#include <sound/type_compat.h>
+#include <sound/uapi/hdsp.h>
 #ifndef __hdsp_type_defined
 #define __hdsp_type_defined
 typedef enum HDSP_IO_Type HDSP_IO_Type;

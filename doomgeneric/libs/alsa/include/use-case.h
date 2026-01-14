@@ -42,7 +42,7 @@
 extern "C" {
 #endif
 
-#include <alsa/asoundlib.h>
+#include <asoundlib.h>
 
 /**
  *  \defgroup ucm Use Case Interface

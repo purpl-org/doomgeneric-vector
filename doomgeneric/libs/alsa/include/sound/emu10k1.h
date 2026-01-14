@@ -1,5 +1,5 @@
-#include <alsa/sound/type_compat.h>
-#include <alsa/sound/uapi/emu10k1.h>
+#include <sound/type_compat.h>
+#include <sound/uapi/emu10k1.h>
 #ifndef __emu10k1_type_defined
 #define __emu10k1_type_defined
 typedef struct snd_emu10k1_fx8010_info emu10k1_fx8010_info_t;
