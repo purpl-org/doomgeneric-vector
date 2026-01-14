@@ -1,4 +1,18 @@
 # doomgeneric-vector
+## Running
+
+To run it:
+
+`./doom -iwad DOOM.WAD`
+
+Also, run the remote control app to control it for now.</br>
+It is found in the remote control folder, run it as so:
+
+`./doomgeneric-vector-input robot-ip-here`
+
+(to compile it, run `gcc doomgeneric-vector-input.c -o doomgeneric-vector-input -lSDL2`)
+
+## Building
 
 On Arch (run this from your home directory):
 
@@ -19,10 +33,6 @@ Alternatively, and maybe more correctly, you can use the compiler for vector:
 For the vector toolchain, you may need to change the makefile as it is for the one I used above, but both should work.
 
 Get the doom WAD here: https://archive.org/download/theultimatedoom_doom2_doom.wad/DOOM.WAD%20(For%20GZDoom)/
-
-To run it:
-
-`./doom -iwad DOOM.WAD`
 
 # doomgeneric
 The purpose of doomgeneric is to make porting Doom easier.
