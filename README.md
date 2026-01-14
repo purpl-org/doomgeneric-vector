@@ -18,6 +18,8 @@ Alternatively, and maybe more correctly, you can use the compiler for vector:
 
 For the vector toolchain, you may need to change the makefile as it is for the one I used above, but both should work.
 
+Get the doom WAD here: https://archive.org/download/theultimatedoom_doom2_doom.wad/DOOM.WAD%20(For%20GZDoom)/
+
 To run it:
 
 `./doom -iwad DOOM.WAD`
