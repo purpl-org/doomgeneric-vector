@@ -18,6 +18,10 @@ Alternatively, and maybe more correctly, you can use the compiler for vector:
 
 For the vector toolchain, you may need to change the makefile as it is for the one I used above, but both should work.
 
+To run it:
+
+`./doom -iwad DOOM.WAD`
+
 # doomgeneric
 The purpose of doomgeneric is to make porting Doom easier.
 Of course Doom is already portable but with doomgeneric it is possible with just a few functions.
