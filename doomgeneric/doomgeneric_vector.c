@@ -13,6 +13,19 @@
 #include <time.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <sys/time.h>
+#include <termios.h>
+#include <signal.h>
+
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <fcntl.h>
+#include <stdlib.h>
+
+#include "doomkeys.h"
+#include "doomgeneric.h"
+
+#define SERVER_PORT 666
 
 #define DOOMGENERIC_RESX 320
 #define DOOMGENERIC_RESY 200
@@ -22,8 +35,12 @@
 #define XSHIFT 0x0
 #define YSHIFT 0x18
 
+static int udp_sock = -1;
+
 static int lcd_fd = -1;
 static int MAX_TRANSFER = 0x1000;
+
+static struct termios orig_termios;
 
 static void gpio_export(int pin) {
     int fd = open("/sys/class/gpio/export", O_WRONLY);
@@ -138,6 +155,17 @@ void DG_Init() {
     }
 
     printf("MIDAS LCD initialized!\n");
+
+    udp_sock = socket(AF_INET, SOCK_DGRAM, 0);
+    fcntl(udp_sock, F_SETFL, O_NONBLOCK);
+
+    struct sockaddr_in server_addr;
+    memset(&server_addr, 0, sizeof(server_addr));
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = INADDR_ANY;
+    server_addr.sin_port = htons(SERVER_PORT);
+
+    bind(udp_sock, (struct sockaddr*)&server_addr, sizeof(server_addr));
 }
 
 void DG_DrawFrame() {
@@ -176,8 +204,45 @@ uint32_t DG_GetTicksMs() {
     return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
 }
 
-int DG_GetKey(int* pressed, unsigned char* doomKey) {
-    // TODO: Add input handling
+static unsigned char map_key(char c) {
+    if (c == 27) return KEY_ESCAPE;
+    if (c == '\n' || c == '\r') return KEY_ENTER;
+    if (c == 127 || c == 8) return KEY_BACKSPACE;
+    if (c == '\t') return KEY_TAB;
+    if (c == ' ') return KEY_USE;
+    if (c == 17) return KEY_FIRE;
+
+    if (c == 'w' || c == 'W') return KEY_UPARROW;
+    if (c == 's' || c == 'S') return KEY_DOWNARROW;
+    if (c == 'a' || c == 'A') return KEY_LEFTARROW;
+    if (c == 'd' || c == 'D') return KEY_RIGHTARROW;
+
+    if (c == 'i') return KEY_UPARROW;
+    if (c == 'k') return KEY_DOWNARROW;
+    if (c == 'j') return KEY_LEFTARROW;
+    if (c == 'l') return KEY_RIGHTARROW;
+
+    if (c >= 'A' && c <= 'Z') return c + 32;
+    if (c > 0 && c < 128) return c;
+
+    return 0;
+
+}
+
+int DG_GetKey(int *pressed, unsigned char *key)
+{
+    unsigned char packet[2];
+    ssize_t len = recvfrom(udp_sock, packet, 2, 0, NULL, NULL);
+
+    if (len == 2) {
+        *pressed = packet[0];
+        *key = map_key(packet[1]);
+
+        if (*key != 0) {
+            return 1;
+        }
+    }
+
     return 0;
 }
 

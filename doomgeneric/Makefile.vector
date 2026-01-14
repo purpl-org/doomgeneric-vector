@@ -1,14 +1,8 @@
-CFLAGS  := -march=armv7-a -mfloat-abi=soft -O2
-LDFLAGS := -lm
+CFLAGS  := -march=armv7-a -mfloat-abi=soft -O2 -I. -I./libs/alsa/include -I./music
+LDFLAGS := -lm -lasound -lpthread -L./libs/alsa/lib -l:libasound.a -lpthread -lm -ldl
 
-SOUND ?= 0
-ifeq ($(SOUND),1)
-    CFLAGS += -DFEATURE_SOUND=1
-    SOUND_OBJS := i_sound.o s_sound.o sounds.o
-else
-    CFLAGS += -DFEATURE_SOUND=0
-    SOUND_OBJS := i_sound_stub.o s_sound.o sounds.o
-endif
+CFLAGS += -DFEATURE_SOUND=0
+SOUND_OBJS := i_sound_alsa.o i_sound.o s_sound.o sounds.o
 
 OBJS = \
  build/main.o \
@@ -90,6 +84,12 @@ OBJS = \
  build/i_scale.o \
  build/i_joystick.o \
  build/v_video.o \
+ build/music/dbopl.o \
+ build/music/opl.o \
+ build/music/opl_queue.o \
+ build/music/oplplayer.o \
+ build/music/midifile.o \
+ build/mus2mid.o \
  $(SOUND_OBJS:%=build/%)
 
 .PHONY: all clean
@@ -102,6 +102,7 @@ doom: $(OBJS)
 # Compile into build/ folder
 build/%.o: %.c
 	@mkdir -p build
+	@mkdir -p build/music
 	arm-linux-gnueabi-gcc $(CFLAGS) -c $< -o $@
 
 clean:
