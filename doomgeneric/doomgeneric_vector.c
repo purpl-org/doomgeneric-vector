@@ -166,6 +166,8 @@ void DG_Init() {
     server_addr.sin_port = htons(SERVER_PORT);
 
     bind(udp_sock, (struct sockaddr*)&server_addr, sizeof(server_addr));
+
+	printf("Input server initialized!\n");
 }
 
 void DG_DrawFrame() {
