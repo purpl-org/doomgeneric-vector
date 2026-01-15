@@ -30,7 +30,7 @@ Alternatively, and maybe more correctly, you can use the compiler for vector:
 `mkdir compiler && cd compiler`</br>
 `wget https://github.com/os-vector/wire-os-externals/releases/download/5.3.0-r07/vicos-sdk_5.3.0-r07_amd64-linux.tar.gz`</br>
 `gunzip vicos-sdk_5.3.0-r07_amd64-linux.tar.gz && tar -xvf vicos-sdk_5.3.0-r07_amd64-linux.tar`</br>
-`export PATH=~/compiler/bin:$PATH`</br>
+`export PATH=~/compiler/prebuilt/bin:$PATH`</br>
 
 For the vector toolchain, you may need to change the makefile as it is for the one I used above, but both should work.
 
