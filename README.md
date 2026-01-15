@@ -32,7 +32,7 @@ Alternatively, and maybe more correctly, you can use the compiler for vector:
 `gunzip vicos-sdk_5.3.0-r07_amd64-linux.tar.gz && tar -xvf vicos-sdk_5.3.0-r07_amd64-linux.tar`</br>
 `export PATH=~/compiler/prebuilt/bin:$PATH`</br>
 
-For the vector toolchain, you may need to change the makefile as it is for the one I used above, but both should work.
+For the vector toolchain, run `Make -f Makefile.vector.propercompiler`
 
 Get the doom WAD here: https://archive.org/download/theultimatedoom_doom2_doom.wad/DOOM.WAD%20(For%20GZDoom)/
 
