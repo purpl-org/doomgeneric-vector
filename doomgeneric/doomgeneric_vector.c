@@ -21,24 +21,31 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include "doomkeys.h"
 #include "doomgeneric.h"
 
 #define SERVER_PORT 666
 
-#define DOOMGENERIC_RESX 320
-#define DOOMGENERIC_RESY 200
-
 #define GPIO_LCD_WRX 110
 #define GPIO_LCD_RESET_MIDAS 96
+#define GPIO_LCD_RESET_SANTEK 55
+#define RSHIFT 0x1C
 #define XSHIFT 0x0
 #define YSHIFT 0x18
+
+#define DOOMGENERIC_RESX 320
+#define DOOMGENERIC_RESY 200
 
 static int udp_sock = -1;
 
 static int lcd_fd = -1;
 static int MAX_TRANSFER = 0x1000;
+
+static int framebuffer_size = 184 * 96;
+
+static bool v1 = true;
 
 static void gpio_export(int pin) {
     int fd = open("/sys/class/gpio/export", O_WRONLY);
@@ -81,8 +88,117 @@ static void lcd_spi_transfer(int is_cmd, int bytes, const void* data) {
     }
 }
 
-void DG_Init() {
-    printf("Initializing MIDAS LCD (160x80)...\n");
+
+bool IsVector1() {
+    FILE *fp;
+    char buffer[128];
+    int result;
+
+    fp = popen("emr-cat v", "r");
+    if (fp == NULL) {
+        perror("popen failed");
+        return true;
+    }
+
+    if (fgets(buffer, sizeof(buffer), fp) != NULL) {
+        if (sscanf(buffer, "%x", &result) == 1) {
+            pclose(fp);
+            if (result == 0x6) return true;
+            else if (result == 0x20) return false;
+            else {
+                fprintf(stderr, "Unexpected output: %s\n", buffer);
+                return true;
+            }
+        }
+    }
+
+    pclose(fp);
+    fprintf(stderr, "Failed to read output.\n");
+    return true;
+}
+
+void SANTEK_Init() {
+	printf("Initializing SANTEK LCD (184x96)...\n");
+
+	framebuffer_size = 184 * 96;
+
+	gpio_export(GPIO_LCD_WRX);
+	gpio_export(GPIO_LCD_RESET_SANTEK);
+	gpio_set_direction(GPIO_LCD_WRX, "out");
+	gpio_set_direction(GPIO_LCD_RESET_SANTEK, "out");
+
+	gpio_write(GPIO_LCD_RESET_SANTEK, 0);
+    usleep(50000);
+    gpio_write(GPIO_LCD_RESET_SANTEK, 1);
+    usleep(120000);
+
+	lcd_fd = open("/dev/spidev1.0", O_RDWR);
+    if (lcd_fd < 0) {
+        fprintf(stderr, "Can't open SPI: %d\n", errno);
+        exit(1);
+    }
+
+	uint8_t mode = 0;
+    ioctl(lcd_fd, SPI_IOC_RD_MODE, &mode);
+
+	int bufsiz_fd = open("/sys/module/spidev/parameters/bufsiz", O_RDONLY);
+    if (bufsiz_fd >= 0) {
+        char buf[32] = {0};
+        read(bufsiz_fd, buf, sizeof(buf));
+        MAX_TRANSFER = atoi(buf);
+        close(bufsiz_fd);
+        printf("SPI max transfer: %d bytes\n", MAX_TRANSFER);
+    }
+
+	struct {
+        uint8_t cmd;
+        uint8_t len;
+        uint8_t data[16];
+        uint32_t delay;
+    } init[] = {
+        { 0x10, 1, { 0x00 }, 120}, // Sleep in
+  		{ 0x2A, 4, { 0x00, RSHIFT, (184 + RSHIFT - 1) >> 8, (184 + RSHIFT - 1) & 0xFF } }, // Column address set
+  		{ 0x2B, 4, { 0x00, 0x00, (96 -1) >> 8, (96 -1) & 0xFF } }, // Row address set
+  		{ 0x36, 1, { 0x00 }, 0 }, // Memory data access control
+  		{ 0x3A, 1, { 0x55 }, 0 }, // Interface pixel format (16 bit/pixel 65k RGB data)
+  		{ 0xB0, 2, { 0x00, 0x08 } }, // RAM control (LSB first)
+  		{ 0xB2, 5, { 0x0C, 0x0C, 0x00, 0x33, 0x33 }, 0 }, // Porch setting
+  		{ 0xB7, 1, { 0x72 }, 0 }, // Gate control (VGH 14.97v, VGL -8.23v)
+  		{ 0xBB, 1, { 0x3B }, 0 }, // VCOMS setting (1.575v)
+  		{ 0xC0, 1, { 0x2C }, 0 }, // LCM control
+  		{ 0xC2, 1, { 0x01 }, 0 }, // VDV and VRH command enable
+  		{ 0xC3, 1, { 0x14 }, 0 }, // VRH set
+  		{ 0xC4, 1, { 0x20 }, 0 }, // VDV set
+  		{ 0xC6, 1, { 0x0F }, 0 }, // Frame rate control in normal mode (60hz)
+  		{ 0xD0, 2, { 0xA4, 0xA1 }, 0 }, // Power control 1
+  		{ 0xE0, 14, { 0xD0, 0x10, 0x16, 0x0A, 0x0A, 0x26, 0x3C, 0x53, 0x53, 0x18, 0x15, 0x12, 0x36, 0x3C }, 0 }, // Positive voltage gamma control
+  		{ 0xE1, 14, { 0xD0, 0x11, 0x19, 0x0A, 0x09, 0x25, 0x3D, 0x35, 0x54, 0x17, 0x15, 0x12, 0x36, 0x3C }, 0 }, // Negative voltage gamma control
+  		{ 0xE9, 3, { 0x05, 0x05, 0x01 }, 0 }, // Equalize time control
+  		{ 0x21, 1, { 0x00 }, 0 }, // Display inversion on
+		{ 0x11, 1, { 0x00 }, 120 }, // Sleep out
+  		{ 0x29, 1, { 0x00 }, 120 }, // Display on
+  		{ 0 }
+    };
+
+
+
+	for (int i = 0; init[i].cmd; i++) {
+        lcd_spi_transfer(1, 1, &init[i].cmd);
+        if (init[i].len) {
+            lcd_spi_transfer(0, init[i].len, init[i].data);
+        }
+        if (init[i].delay) {
+            usleep(init[i].delay * 1000);
+        }
+    }
+
+	printf("SANTEK LCD initialized!\n");
+}
+
+void MIDAS_Init() {
+	printf("Initializing MIDAS LCD (160x80)...\n");
+
+	framebuffer_size = 160 * 80;
 
     gpio_export(GPIO_LCD_WRX);
     gpio_export(GPIO_LCD_RESET_MIDAS);
@@ -96,7 +212,7 @@ void DG_Init() {
 
     lcd_fd = open("/dev/spidev1.0", O_RDWR);
     if (lcd_fd < 0) {
-        fprintf(stderr, "FUCK: Can't open SPI: %d\n", errno);
+        fprintf(stderr, "Can't open SPI: %d\n", errno);
         exit(1);
     }
 
@@ -153,6 +269,16 @@ void DG_Init() {
     }
 
     printf("MIDAS LCD initialized!\n");
+}
+
+void DG_Init() {
+	v1 = IsVector1();
+
+	if (v1) {
+		SANTEK_Init();
+	} else {
+		MIDAS_Init();
+	}
 
     udp_sock = socket(AF_INET, SOCK_DGRAM, 0);
     fcntl(udp_sock, F_SETFL, O_NONBLOCK);
@@ -173,12 +299,13 @@ void DG_Init() {
 }
 
 void DG_DrawFrame() {
-    static uint16_t rgb565_frame[160 * 80];
+    uint16_t rgb565_frame[framebuffer_size];
+	memset(rgb565_frame, 0, sizeof(rgb565_frame));
 
-    for (int y = 0; y < 80; y++) {
-        for (int x = 0; x < 160; x++) {
-            int src_x = x * 2;
-            int src_y = (y * 5) / 2;
+    for (int y = 0; y < (v1 ? 96 : 80); y++) {
+        for (int x = 0; x < (v1 ? 154 : 160); x++) {
+            int src_x = v1 ? (x * 25) / 12 : x * 2;
+            int src_y = v1 ? (y * 25) / 12 : (y * 5) / 2;
             int src_idx = src_y * 320 + src_x;
 
             uint32_t pixel = DG_ScreenBuffer[src_idx];
@@ -189,7 +316,10 @@ void DG_DrawFrame() {
 
             uint16_t c = ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);
 
-            rgb565_frame[y * 160 + x] = (c >> 8) | (c << 8);
+			int dst_x = v1 ? (x + 15) : x;
+			int dst_width = v1 ? 184 : 160;
+
+            rgb565_frame[y * dst_width + dst_x] = v1 ? c : ((c >> 8) | (c << 8));
         }
     }
 
