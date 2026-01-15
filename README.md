@@ -26,8 +26,8 @@ Then to compile:
 
 Alternatively, and maybe more correctly, you can use the compiler for vector:
 
-`cd ~`
-`mkdir compiler && cd compiler`
+`cd ~`</br>
+`mkdir compiler && cd compiler`</br>
 `wget https://github.com/os-vector/wire-os-externals/releases/download/5.3.0-r07/vicos-sdk_5.3.0-r07_amd64-linux.tar.gz`</br>
 `gunzip vicos-sdk_5.3.0-r07_amd64-linux.tar.gz && tar -xvf vicos-sdk_5.3.0-r07_amd64-linux.tar`</br>
 `export PATH=~/compiler/bin:$PATH`</br>
