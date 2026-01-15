@@ -35,12 +35,11 @@
 #define XSHIFT 0x0
 #define YSHIFT 0x18
 
-static int udp_sock = -1;
+static int tcp_sock = -1;
+static int client_sock = -1;
 
 static int lcd_fd = -1;
 static int MAX_TRANSFER = 0x1000;
-
-static struct termios orig_termios;
 
 static void gpio_export(int pin) {
     int fd = open("/sys/class/gpio/export", O_WRONLY);
@@ -156,8 +155,13 @@ void DG_Init() {
 
     printf("MIDAS LCD initialized!\n");
 
-    udp_sock = socket(AF_INET, SOCK_DGRAM, 0);
-    fcntl(udp_sock, F_SETFL, O_NONBLOCK);
+    tcp_sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (tcp_sock < 0) {
+        perror("socket");
+        return -1;
+    }
+
+    fcntl(tcp_sock, F_SETFL, O_NONBLOCK);
 
     struct sockaddr_in server_addr;
     memset(&server_addr, 0, sizeof(server_addr));
@@ -165,13 +169,20 @@ void DG_Init() {
     server_addr.sin_addr.s_addr = INADDR_ANY;
     server_addr.sin_port = htons(SERVER_PORT);
 
-	if (bind(udp_sock, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
-    	perror("bind");
-    	close(udp_sock);
-    	return -1;
-	}
+    if (bind(tcp_sock, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
+        perror("bind");
+        close(tcp_sock);
+        return -1;
+    }
 
-	printf("Input server initialized!\n");
+    if (listen(tcp_sock, 1) < 0) {
+        perror("listen");
+        close(tcp_sock);
+        return -1;
+    }
+
+    printf("TCP input server initialized!\n");
+
 }
 
 void DG_DrawFrame() {
@@ -235,13 +246,31 @@ static unsigned char map_key(char c) {
 
 }
 
+int accept_client()
+{
+    if (client_sock < 0) {
+        client_sock = accept(tcp_sock, NULL, NULL);
+        if (client_sock < 0) {
+            // No client connected yet
+            return 0;
+        }
+        fcntl(client_sock, F_SETFL, O_NONBLOCK);
+        printf("Client connected!\n");
+    }
+    return 1;
+}
+
 int DG_GetKey(int *pressed, unsigned char *key)
 {
+    if (!accept_client()) {
+        return 0;
+    }
+
     unsigned char packet[2];
-    ssize_t len = recvfrom(udp_sock, packet, 2, 0, NULL, NULL);
+    ssize_t len = recv(client_sock, packet, 2, 0);
 
     if (len == 2) {
-		printf("%c\n", packet[1]);
+        //printf("%c\n", packet[1]);
 
         *pressed = packet[0];
         *key = map_key(packet[1]);
@@ -249,6 +278,10 @@ int DG_GetKey(int *pressed, unsigned char *key)
         if (*key != 0) {
             return 1;
         }
+    } else if (len == 0) {
+        close(client_sock);
+        client_sock = -1;
+        printf("Client disconnected\n");
     }
 
     return 0;

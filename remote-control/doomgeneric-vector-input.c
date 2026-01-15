@@ -4,7 +4,6 @@
 #include <errno.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
-#include <sys/time.h>
 #include <SDL2/SDL.h>
 
 #define SERVER_PORT 666
@@ -63,9 +62,9 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    printf("Connecting...\n");
+    printf("Connecting to TCP server...\n");
 
-    int sock = socket(AF_INET, SOCK_DGRAM, 0);
+    int sock = socket(AF_INET, SOCK_STREAM, 0); // TCP socket
     if (sock < 0) {
         fprintf(stderr, "socket() failed: %s\n", strerror(errno));
         goto cleanup;
@@ -86,28 +85,6 @@ int main(int argc, char *argv[]) {
         goto cleanup;
     }
 
-    unsigned char probe = 0;
-    if (send(sock, &probe, 1, 0) < 0) {
-        fprintf(stderr, "send() failed: %s\n", strerror(errno));
-        goto cleanup;
-    }
-
-    struct timeval tv = {
-        .tv_sec = 0,
-        .tv_usec = 200000
-    };
-    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
-
-    unsigned char tmp;
-    ssize_t r = recv(sock, &tmp, 1, 0);
-    if (r < 0 &&
-        (errno == ECONNREFUSED ||
-         errno == EHOSTUNREACH ||
-         errno == ENETUNREACH)) {
-        fprintf(stderr, "Connection failed: %s\n", strerror(errno));
-        goto cleanup;
-    }
-
     printf("Connected!\n");
 
     SDL_Event e;
@@ -120,13 +97,16 @@ int main(int argc, char *argv[]) {
             if (e.type == SDL_KEYDOWN || e.type == SDL_KEYUP) {
                 unsigned char key = sdl_to_doom(e.key.keysym.sym);
                 if (key) {
-		    printf("%c\n", key);
-
                     unsigned char packet[2] = {
                         e.type == SDL_KEYDOWN ? 1 : 0,
                         key
                     };
-                    send(sock, packet, 2, 0);
+                    ssize_t sent = send(sock, packet, 2, 0);
+                    if (sent < 0) {
+                        fprintf(stderr, "send() failed: %s\n", strerror(errno));
+                        running = 0;
+                        break;
+                    }
                 }
             }
         }
