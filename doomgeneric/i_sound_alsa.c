@@ -1,4 +1,4 @@
-#include <asoundlib.h>
+#include <alsa/asoundlib.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -98,11 +98,11 @@ static void* I_ALSA_RegisterSong(void *data, int len)
     size_t midi_len;
     mem_get_buf(outstream, &midi_data, &midi_len);
 
-    void *handle = I_OPL_RegisterSong(midi_data, midi_len);
+    const void *handle = I_OPL_RegisterSong(midi_data, midi_len);
 
     mem_fclose(outstream);
 
-    return handle;
+    return (void *)handle;
 }
 
 static void I_ALSA_UnRegisterSong(void *handle)

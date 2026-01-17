@@ -1,5 +1,5 @@
-CFLAGS  := -march=armv7-a -mfloat-abi=soft -O2 -I. -I./libs/alsa/include -I./music
-LDFLAGS := -lm -lasound -lpthread -L./libs/alsa/lib -l:libasound.a -lpthread -lm -ldl
+CFLAGS  := -march=armv7-a -mfloat-abi=soft -O2 -I. -I./music -fPIE
+LDFLAGS := -lm -lasound -lpthread -lpthread -lm -ldl -pie
 
 CFLAGS += -DFEATURE_SOUND=0
 SOUND_OBJS := i_sound_alsa.o i_sound.o s_sound.o sounds.o
@@ -97,13 +97,13 @@ OBJS = \
 all: doom
 
 doom: $(OBJS)
-	arm-linux-gnueabi-gcc $(CFLAGS) $(OBJS) $(LDFLAGS) -o $@
+	arm-oe-linux-gnueabi-clang $(CFLAGS) $(OBJS) $(LDFLAGS) -o $@
 
 # Compile into build/ folder
 build/%.o: %.c
 	@mkdir -p build
 	@mkdir -p build/music
-	arm-linux-gnueabi-gcc $(CFLAGS) -c $< -o $@
+	arm-oe-linux-gnueabi-clang $(CFLAGS) -c $< -o $@
 
 clean:
 	rm -rf build doom

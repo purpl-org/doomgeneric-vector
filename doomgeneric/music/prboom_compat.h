@@ -10,7 +10,6 @@
 #include "../memio.h"
 #include "../doomtype.h"
 
-
 #define LO_INFO  0
 #define LO_WARN  1
 #define LO_ERROR 2

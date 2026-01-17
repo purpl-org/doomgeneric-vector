@@ -180,8 +180,6 @@ void SANTEK_Init() {
   		{ 0 }
     };
 
-
-
 	for (int i = 0; init[i].cmd; i++) {
         lcd_spi_transfer(1, 1, &init[i].cmd);
         if (init[i].len) {
@@ -292,7 +290,7 @@ void DG_Init() {
 	if (bind(udp_sock, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
     	perror("bind");
     	close(udp_sock);
-    	return -1;
+    	return;
 	}
 
 	printf("Input server initialized!\n");

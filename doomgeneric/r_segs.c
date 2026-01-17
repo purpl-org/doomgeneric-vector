@@ -395,18 +395,18 @@ R_StoreWallRange
     linedef->flags |= ML_MAPPED;
     
     // calculate rw_distance for scale calculation
-    rw_normalangle = curline->angle + ANG90;
-    offsetangle = abs(rw_normalangle-rw_angle1);
-    
-    if (offsetangle > ANG90)
-	offsetangle = ANG90;
+	rw_normalangle = curline->angle + ANG90;
 
-    distangle = ANG90 - offsetangle;
-    hyp = R_PointToDist (curline->v1->x, curline->v1->y);
-    sineval = finesine[distangle>>ANGLETOFINESHIFT];
-    rw_distance = FixedMul (hyp, sineval);
-		
-	
+	angle_t delta_angle = rw_normalangle - rw_angle1;
+
+	offsetangle = delta_angle > ANG180 ? (0xFFFFFFFFu - delta_angle + 1) : delta_angle;
+	if (offsetangle > ANG90) offsetangle = ANG90;
+
+	distangle = ANG90 - offsetangle;
+	hyp = R_PointToDist(curline->v1->x, curline->v1->y);
+	sineval = finesine[distangle >> ANGLETOFINESHIFT];
+	rw_distance = FixedMul(hyp, sineval);
+
     ds_p->x1 = rw_x = start;
     ds_p->x2 = stop;
     ds_p->curline = curline;
