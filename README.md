@@ -14,17 +14,7 @@ It is found in the remote control folder, run it as so:
 
 ## Building
 
-On Arch (run this from your home directory):
-
-`wget https://releases.linaro.org/components/toolchain/binaries/latest-7/arm-linux-gnueabi/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabi.tar.xz`</br>
-`tar xf gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabi.tar.xz`</br>
-`export PATH=~/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabi/bin:$PATH`</br>
-
-Then to compile:
-
-`make -f Makefile.vector` (you may need to clean if it doesn't want to compile)
-
-Alternatively, and maybe more correctly, you can use the compiler for vector:
+On Linux:
 
 `cd ~`</br>
 `mkdir compiler && cd compiler`</br>
@@ -32,7 +22,9 @@ Alternatively, and maybe more correctly, you can use the compiler for vector:
 `gunzip vicos-sdk_5.3.0-r07_amd64-linux.tar.gz && tar -xvf vicos-sdk_5.3.0-r07_amd64-linux.tar`</br>
 `export PATH=~/compiler/prebuilt/bin:$PATH`</br>
 
-For the vector toolchain, run `Make -f Makefile.vector.propercompiler`
+To compile:
+
+`make -f Makefile.vector`
 
 Get the doom WAD here: https://archive.org/download/theultimatedoom_doom2_doom.wad/DOOM.WAD%20(For%20GZDoom)/
 
